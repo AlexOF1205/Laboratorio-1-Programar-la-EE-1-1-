@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class EE1mas1:
     def __init__(self, fitness_fn, dim, lim_min, lim_max, sigma, generaciones, seed=None):
@@ -51,4 +52,10 @@ ee_rastrigin = EE1mas1(
 mejor_x, mejor_aptitud, historial = ee_rastrigin.ejecutar()
 print("Mejor x encontrado: ", mejor_x)
 print("Mejor aptitud:", mejor_aptitud) 
-# IRONEDIT:1788647392:ux23ii012:79efaa019a13faa28a626988b5877ff72d0a3654de65137af501dee8c470e2bd
+
+plt.plot(historial)
+plt.xlabel("Generación")
+plt.ylabel("Aptitud (Rastrigin)")
+plt.title("Curva de convergencia - EE(1+1) en Rastrigin")
+plt.show()
+# IRONEDIT:1788648447:ux23ii012:f10efbbcb3c05342fcdded47a62e64cc46c472c06f00b23e6aa7e000394de9ea
