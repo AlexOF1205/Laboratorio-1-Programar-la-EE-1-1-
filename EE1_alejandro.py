@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 class EE1mas1:
-    def __init__(self, fitness_fn, dim, lim_min, lim_max, sigma, generaciones, seed=None):
+    def __init__(self, fitness_fn, dim, lim_min, lim_max, sigma, generaciones, seed=60):
         self.fitness_fn = fitness_fn
         self.dim = dim
         self.lim_min = lim_min
@@ -118,7 +118,7 @@ def animar_lanzamiento(lanzamiento, frames_x, frames_aptitud):
 
     linea_trayectoria, = ax.plot([], [], color = 'royalblue', linewidth = 2.5, label = 'Trayectoria', zorder = 4)
     punto_proyectil, = ax.plot([], [], 'o', color = 'crimson', markersize = 10, zorder = 6)
-    texto_info = ax.text(0.02, 0.95, '', transform = ax.transAxes, fontsize = 11, verticalalightment = 'top', bbox = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.8))
+    texto_info = ax.text(0.02, 0.95, '', transform = ax.transAxes, fontsize = 11, verticalalignment = 'top', bbox = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.8))
     ax.legend(loc = 'upper right')
 
     def actualizar(frame_idx): 
@@ -147,8 +147,8 @@ ee = EE1mas1(
     dim = 2,
     lim_min = [lanzamiento.theta_min, lanzamiento.v_min],
     lim_max = [lanzamiento.theta_max, lanzamiento.v_max],
-    sigma = 0.5,
-    generaciones = 1000
+    sigma = 0.7,
+    generaciones = 1010
 )
 
 
@@ -191,4 +191,4 @@ plt.xlabel("Generación")
 plt.ylabel("Aptitud (Rastrigin)")
 plt.title("Curva de convergencia - EE(1+1) en Rastrigin")
 plt.show()'''
-# IRONEDIT:1788658189:ux23ii012:986444ae8b1afc30be0484e744dfc12f829bcd4918294b0f41bf0445f8f29f6d
+# IRONEDIT:1788658854:ux23ii012:c65a050f19a917175af3640563a32c5bc97489d19d4b6b95c5e557ef8af5d961
