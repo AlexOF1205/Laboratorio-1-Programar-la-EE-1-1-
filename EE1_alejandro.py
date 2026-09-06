@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import matplotlib.transforms as transforms
 from matplotlib.animation import FuncAnimation
 
 class EE1mas1:
@@ -104,22 +106,44 @@ class Lanzamiento:
 
 def animar_lanzamiento(lanzamiento, frames_x, frames_aptitud):
     fig, ax = plt.subplots(figsize = (9,5.5))
-        
-    ax.bar(lanzamiento.x_muro, lanzamiento.h_muro, width = 2, color = 'dimgray', label = 'Muro', zorder = 3)
-    ax.scatter(0, 0, s = 250, marker = '^', color = 'black', label = 'Cañon', zorder = 5)
-    ax.scatter(lanzamiento.x_blanco, 0, s = 250, marker = '*', color = 'gold', edgecolor = 'orange', label = 'Blanco', zorder = 5)
-    ax.axhline(0, color = 'saddlebrown', linewidth = 2, zorder = 2)
 
-    ax.set_xlim(-5, max(lanzamiento.x_blanco, lanzamiento.x_muro) + 15)
-    ax.set_ylim(0,60)
+    # Cielo
+    cielo = np.linspace(0, 1, 100).reshape(-1,1)
+    ax.imshow(cielo, extent = [-10, 100, 0, 60], aspect = 'auto', cmap = 'Blues_r', alpha = 0.4, zorder = 0)
+    # Suelo
+    ax.fill_between([-10, 100], -3, 0, color = '#6b8e4e', zorder = 1)
+    ax.axhline(0, color = '#4a5d32', linewidth = 2, zorder = 2)
+    # Muro   
+    ax.bar(lanzamiento.x_muro, lanzamiento.h_muro, width = 2.5, color = '#8b7355', edgecolor = '#3d2817', linewidth = 1.5, hatch = '---', label = 'Muro', zorder = 3)
+    # Cañon
+    rueda = patches.Circle((0,0), radius = 1.4, color = '#2c2c2c', zorder = 6)
+    rueda_rin = patches.Circle((0,0), radius = 0.6, color = '#777777', zorder = 7)
+    ax.add_patch(rueda)
+    ax.add_patch(rueda_rin)
+
+    largo_tubo, ancho_tubo = 3.5, 0.9
+    tubo_cañon = patches.Rectangle((0, -ancho_tubo / 2), largo_tubo, ancho_tubo, facecolor = '#3d3d3d', edgecolor = 'black', linewidth = 1, zorder = 8)
+    ax.add_patch(tubo_cañon)
+    # Diana
+    for radio, color in [(3, '#d32f2f'), (2, 'white'), (1, '#d32f2f')]:
+        ax.add_patch(patches.Circle((lanzamiento.x_blanco, 0.05), radio*0.3, color = color, zorder = 4))
+
+    # Dinámicos
+    linea_trayectoria, = ax.plot([], [], color = '#1565c0', linewidth = 2.5, label = 'Trayectoria', zorder = 5)
+    lineas_fantasma = [ax.plot([], [], color = '#90caf9', linewidth = 1.5, alpha = 0.15 * (i + 1), zorder = 4)[0] for i in range(3)]
+    punto_proyectil, = ax.plot([], [], 'o', color = '#e53935', markersize = 11, markeredgecolor = '#7f0000', zorder = 7)
+    texto_info = ax.text(0.02, 0.95, '', transform = ax.transAxes, fontsize = 11, verticalalignment = 'top', family = 'monospace', bbox = dict(boxstyle = 'round', facecolor = 'white', edgecolor = '#1565c0', alpha = 0.9))
+    
+
+
+    ax.set_xlim(-8, max(lanzamiento.x_blanco, lanzamiento.x_muro) + 15)
+    ax.set_ylim(-3,60)
     ax.set_xlabel("Distancia (m)")
     ax.set_ylabel("Altura (m)")
-    ax.grid(alpha = 0.3)
+    ax.legend(loc = 'upper right', framealpha = 0.9)
+    ax.grid(alpha = 0.2)
 
-    linea_trayectoria, = ax.plot([], [], color = 'royalblue', linewidth = 2.5, label = 'Trayectoria', zorder = 4)
-    punto_proyectil, = ax.plot([], [], 'o', color = 'crimson', markersize = 10, zorder = 6)
-    texto_info = ax.text(0.02, 0.95, '', transform = ax.transAxes, fontsize = 11, verticalalignment = 'top', bbox = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.8))
-    ax.legend(loc = 'upper right')
+    historial_trayectorias = []
 
     def actualizar(frame_idx): 
         theta, v = frames_x[frame_idx]
@@ -130,13 +154,27 @@ def animar_lanzamiento(lanzamiento, frames_x, frames_aptitud):
         xs = np.linspace(0, R, 100)
         ys = lanzamiento.altura_en(xs, theta, v)
 
+        transformacion = (transforms.Affine2D().rotate_deg(theta).translate(0,0) + ax.transData)
+        tubo_cañon.set_transform(transformacion)
+
+        historial_trayectorias.append((xs, ys))
+        if len(historial_trayectorias) > 4:
+            historial_trayectorias.pop(0)
+        for i, linea in enumerate(lineas_fantasma):
+            idx = -(i+2)
+            if len(historial_trayectorias) > i +1:
+                xs_f, ys_f = historial_trayectorias[idx]
+                linea.set_data(xs_f, ys_f)
+
         linea_trayectoria.set_data(xs, ys)
         punto_proyectil.set_data([xs[-1]], [max(ys[-1], 0)])
-        texto_info.set_text(f"Generación: {generacion}\ntheta = {theta:.1f}°  v = {v:.1f} m/s\nAptitud:  {aptitud:.3f}")
 
-        return linea_trayectoria, punto_proyectil, texto_info
+        estado = "EN EL BLANCO" if aptitud < 1 else ("CHOCA MURO" if aptitud >= 1000 else "...ajustando")
+        texto_info.set_text(f"Generación: {generacion}\ntheta = {theta:.1f}°  v = {v:.1f} m/s\nAptitud:  {aptitud:.3f}\n{estado}")
+
+        return [linea_trayectoria, punto_proyectil, texto_info, tubo_cañon] + lineas_fantasma
     
-    anim = FuncAnimation(fig, actualizar, frames=len(frames_x), interval = 150, blit = True, repeat = False)
+    anim = FuncAnimation(fig, actualizar, frames=len(frames_x), interval = 800, blit = True, repeat = False)
     plt.show()
     return anim
 
@@ -147,8 +185,8 @@ ee = EE1mas1(
     dim = 2,
     lim_min = [lanzamiento.theta_min, lanzamiento.v_min],
     lim_max = [lanzamiento.theta_max, lanzamiento.v_max],
-    sigma = 0.7,
-    generaciones = 1010
+    sigma = 1,
+    generaciones = 1000
 )
 
 
@@ -191,4 +229,4 @@ plt.xlabel("Generación")
 plt.ylabel("Aptitud (Rastrigin)")
 plt.title("Curva de convergencia - EE(1+1) en Rastrigin")
 plt.show()'''
-# IRONEDIT:1788658854:ux23ii012:c65a050f19a917175af3640563a32c5bc97489d19d4b6b95c5e557ef8af5d961
+# IRONEDIT:1788664354:ux23ii012:3cb3affb8ff143bd086cc1180fdce40ca2b093e993479edbe12bb6b17293eb7b
