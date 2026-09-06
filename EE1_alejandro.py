@@ -117,11 +117,28 @@ def animar_lanzamiento(lanzamiento, frames_x, frames_aptitud):
     ax.grid(alpha = 0.3)
 
     linea_trayectoria, = ax.plot([], [], color = 'royalblue', linewidth = 2.5, label = 'Trayectoria', zorder = 4)
-    punro_proyectil, = ax.plot([], [], 'o', color = 'crimson', markersize = 10, zorder = 6)
-    texto_info = ax.text(0.02, 0.95, '', transform = ax.transAxes, fontsize = 11, verticalalightment = 'top', bbox = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.8)
+    punto_proyectil, = ax.plot([], [], 'o', color = 'crimson', markersize = 10, zorder = 6)
+    texto_info = ax.text(0.02, 0.95, '', transform = ax.transAxes, fontsize = 11, verticalalightment = 'top', bbox = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.8))
     ax.legend(loc = 'upper right')
 
-    def actualizar(frame_idx)
+    def actualizar(frame_idx): 
+        theta, v = frames_x[frame_idx]
+        aptitud = frames_aptitud[frame_idx]
+        generacion = frame_idx * 10
+
+        R = lanzamiento.alcance(theta, v)
+        xs = np.linspace(0, R, 100)
+        ys = lanzamiento.altura_en(xs, theta, v)
+
+        linea_trayectoria.set_data(xs, ys)
+        punto_proyectil.set_data([xs[-1]], [max(ys[-1], 0)])
+        texto_info.set_text(f"Generación: {generacion}\ntheta = {theta:.1f}°  v = {v:.1f} m/s\nAptitud:  {aptitud:.3f}")
+
+        return linea_trayectoria, punto_proyectil, texto_info
+    
+    anim = FuncAnimation(fig, actualizar, frames=len(frames_x), interval = 150, blit = True, repeat = False)
+    plt.show()
+    return anim
 
 
 lanzamiento = Lanzamiento()
@@ -140,10 +157,11 @@ mejor_x, mejor_aptitud, historial = ee.ejecutar()
 print("Mejor x encontrado: ", mejor_x)
 print("Mejor aptitud:", mejor_aptitud) 
 
-lanzamiento.graficar(mejor_x[0], mejor_x[1])
+# lanzamiento.graficar(mejor_x[0], mejor_x[1])
 
 frames_x = ee.historial_x[::10]
 frames_aptitud = ee.historial[::10]
+anim = animar_lanzamiento(lanzamiento, frames_x, frames_aptitud)
 
 
 ''' MAIN
@@ -173,4 +191,4 @@ plt.xlabel("Generación")
 plt.ylabel("Aptitud (Rastrigin)")
 plt.title("Curva de convergencia - EE(1+1) en Rastrigin")
 plt.show()'''
-# IRONEDIT:1788657404:ux23ii012:08d75f9a15095bcdb8bd2bd5325152a4279a657e994c0b43c87ba7821358714c
+# IRONEDIT:1788658189:ux23ii012:986444ae8b1afc30be0484e744dfc12f829bcd4918294b0f41bf0445f8f29f6d
