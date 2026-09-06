@@ -39,15 +39,6 @@ def rastrigin(x, A = 10):
     n = len(x)
     return A*n + np.sum(x**2-A*np.cos(2*np.pi*x))
 
-ee_rastrigin = EE1mas1(
-    fitness_fn = rastrigin,
-    dim = 2,
-    lim_min = -5.12,
-    lim_max = 5.12,
-    sigma = 0.05,
-    generaciones = 2000,
-    seed = 42
-)
 
 class Lanzamiento:
     def __init__(self, g = 9.81, x_muro = 40, h_muro = 15, x_blanco = 80, theta_min = 10, theta_max = 80, v_min = 5, v_max = 50):
@@ -73,11 +64,49 @@ class Lanzamiento:
         R = v**2 * np.sin(2*theta_rad)/self.g
         return R
 
+    def aptitud(self, x):
+        theta = x[0]
+        v = x[1]
+        R = self.alcance(theta, v)
+        error = abs(R - self.x_blanco)
+        if self.altura_en(self.x_muro, theta, v) < self.h_muro:
+            error = error + 1000
+        return error
+        
+
+lanzamiento = Lanzamiento()
+ee = EE1mas1(
+    fitness_fn = lanzamiento.aptitud,
+    dim = 2,
+    lim_min = [lanzamiento.theta_min, lanzamiento.v_min],
+    lim_max = [lanzamiento.theta_max, lanzamiento.v_max],
+    sigma = 0.5,
+    generaciones = 1000
+)
+
+mejor_x, mejor_aptitud, historial = ee.ejecutar()
+print("Mejor x encontrado: ", mejor_x)
+print("Mejor aptitud:", mejor_aptitud) 
+
+plt.plot(historial)
+plt.xlabel("Generación")
+plt.ylabel("Aptitud (Error al blanco)")
+plt.title("Curva de convergencia - EE(1+1) en el lanzamiento")
+plt.show()
 
 
+''' MAIN
 
+ee_rastrigin = EE1mas1(
+    fitness_fn = rastrigin,
+    dim = 2,
+    lim_min = -5.12,
+    lim_max = 5.12,
+    sigma = 0.5,
+    generaciones = 2000,
+    seed = 42
+)
 
-# MAIN
 mejor_x, mejor_aptitud, historial = ee_rastrigin.ejecutar()
 print("Mejor x encontrado: ", mejor_x)
 print("Mejor aptitud:", mejor_aptitud) 
@@ -86,5 +115,5 @@ plt.plot(historial)
 plt.xlabel("Generación")
 plt.ylabel("Aptitud (Rastrigin)")
 plt.title("Curva de convergencia - EE(1+1) en Rastrigin")
-plt.show()
-# IRONEDIT:1788652309:ux23ii012:c7e36d285414478935da4f2891dd33457e22e9b82a0bf2de50c652a5700ed12a
+plt.show()'''
+# IRONEDIT:1788653576:ux23ii012:a4e3847bcdda45c923f688ae3834e1b6c2b224458f45afd426b9c9103a62e45e
