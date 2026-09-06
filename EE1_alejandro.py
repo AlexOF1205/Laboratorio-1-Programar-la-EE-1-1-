@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 class EE1mas1:
     def __init__(self, fitness_fn, dim, lim_min, lim_max, sigma, generaciones, seed=None):
@@ -12,6 +13,7 @@ class EE1mas1:
         self.padre = None
         self.aptitud_padre = None
         self.historial = []
+        self.historial_x = []
         self.rng = np.random.default_rng(seed)
 
     def inicializar(self):
@@ -33,6 +35,7 @@ class EE1mas1:
                 self.padre = hijo
                 self.aptitud_padre = aptitud_hijo
             self.historial.append(self.aptitud_padre)
+            self.historial_x.append(self.padre.copy())
         return self.padre, self.aptitud_padre, self.historial
 
 def rastrigin(x, A = 10):
@@ -72,7 +75,54 @@ class Lanzamiento:
         if self.altura_en(self.x_muro, theta, v) < self.h_muro:
             error = error + 1000
         return error
+
+    def graficar(self, theta, v):
+        R = self.alcance(theta, v)
+        xs = np.linspace(0, R, 200)
+        ys = self.altura_en(xs, theta, v)
+
+        fig, ax = plt.subplots(figsize = (8,5))
+        ax.plot(xs, ys, color = 'royalblue', linewidth = 2, label = 'Trayectoria')
         
+        # Muro
+        ax.bar(self.x_muro, self.h_muro, width = 2, color = 'dimgray', label = 'Muro')
+        
+        # Cañon
+        ax.scatter(0, 0, s = 200, marker = '^', color = 'black', label = 'Cañon', zorder = 5)
+
+        # Blanco
+        ax.scatter(self.x_blanco, 0, s = 200, marker = '*', color = 'gold', edgecolor = 'orange', label = 'Blanco', zorder = 5)
+
+        # Final
+        ax.axhline(0, color = 'saddlebrown', linewidth = 2)
+        ax.set_xlabel("Distancia (m)")
+        ax.set_ylabel("Altura (m)")
+        ax.set_title(f"Lanzamiento: theta={theta:.1f}°, v={v:.1f} m/s")
+        ax.legend()
+        ax.grid(alpha = 0.3)
+        plt.show()
+
+def animar_lanzamiento(lanzamiento, frames_x, frames_aptitud):
+    fig, ax = plt.subplots(figsize = (9,5.5))
+        
+    ax.bar(lanzamiento.x_muro, lanzamiento.h_muro, width = 2, color = 'dimgray', label = 'Muro', zorder = 3)
+    ax.scatter(0, 0, s = 250, marker = '^', color = 'black', label = 'Cañon', zorder = 5)
+    ax.scatter(lanzamiento.x_blanco, 0, s = 250, marker = '*', color = 'gold', edgecolor = 'orange', label = 'Blanco', zorder = 5)
+    ax.axhline(0, color = 'saddlebrown', linewidth = 2, zorder = 2)
+
+    ax.set_xlim(-5, max(lanzamiento.x_blanco, lanzamiento.x_muro) + 15)
+    ax.set_ylim(0,60)
+    ax.set_xlabel("Distancia (m)")
+    ax.set_ylabel("Altura (m)")
+    ax.grid(alpha = 0.3)
+
+    linea_trayectoria, = ax.plot([], [], color = 'royalblue', linewidth = 2.5, label = 'Trayectoria', zorder = 4)
+    punro_proyectil, = ax.plot([], [], 'o', color = 'crimson', markersize = 10, zorder = 6)
+    texto_info = ax.text(0.02, 0.95, '', transform = ax.transAxes, fontsize = 11, verticalalightment = 'top', bbox = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.8)
+    ax.legend(loc = 'upper right')
+
+    def actualizar(frame_idx)
+
 
 lanzamiento = Lanzamiento()
 ee = EE1mas1(
@@ -84,18 +134,25 @@ ee = EE1mas1(
     generaciones = 1000
 )
 
+
+
 mejor_x, mejor_aptitud, historial = ee.ejecutar()
 print("Mejor x encontrado: ", mejor_x)
 print("Mejor aptitud:", mejor_aptitud) 
+
+lanzamiento.graficar(mejor_x[0], mejor_x[1])
+
+frames_x = ee.historial_x[::10]
+frames_aptitud = ee.historial[::10]
+
+
+''' MAIN
 
 plt.plot(historial)
 plt.xlabel("Generación")
 plt.ylabel("Aptitud (Error al blanco)")
 plt.title("Curva de convergencia - EE(1+1) en el lanzamiento")
 plt.show()
-
-
-''' MAIN
 
 ee_rastrigin = EE1mas1(
     fitness_fn = rastrigin,
@@ -116,4 +173,4 @@ plt.xlabel("Generación")
 plt.ylabel("Aptitud (Rastrigin)")
 plt.title("Curva de convergencia - EE(1+1) en Rastrigin")
 plt.show()'''
-# IRONEDIT:1788653576:ux23ii012:a4e3847bcdda45c923f688ae3834e1b6c2b224458f45afd426b9c9103a62e45e
+# IRONEDIT:1788657404:ux23ii012:08d75f9a15095bcdb8bd2bd5325152a4279a657e994c0b43c87ba7821358714c
